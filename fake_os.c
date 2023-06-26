@@ -102,7 +102,7 @@ void FakeOS_simStep(FakeOS* os){
     aux=aux->next;
 
     if (new_process) {  //il processo è arrivato
-      printf("\tarrivato il processo con pid:%d\n", new_process->pid);
+      printf("\tArrivato il processo con pid: %d\n", new_process->pid);
       //stacca il processo dalla lista processes
       new_process=(FakeProcess*)List_detach(&os->processes, (ListItem*)new_process);
       //crea il PCB del processo arrivato e lo mette nella lista corretta
@@ -110,7 +110,10 @@ void FakeOS_simStep(FakeOS* os){
       free(new_process);
     }
   }
-
+  if (os->processes.size){
+    printf("\tDimensione lista processes (processi non ancora arrivati): %d\n", os->processes.size);
+  }
+  printf("\n");
 
   //processi in waiting__________________________________________________________
 
@@ -136,7 +139,7 @@ void FakeOS_simStep(FakeOS* os){
 
       if (! pcb->events.first) {  //gli eventi sono finiti
         //il processo è terminato
-        printf("\t\tprocesso terminato\n");
+        printf("\t\tPROCESSO %d TERMINATO\n", pcb->pid);
         free(pcb);  //libera il PCB
       }
       else {
@@ -144,12 +147,12 @@ void FakeOS_simStep(FakeOS* os){
         e=(ProcessEvent*) pcb->events.first;
         switch (e->type){
           case CPU:  //il prossimo evento è un CPU burst
-            printf("\t\tspostiamo il processo in ready\n");
+            printf("\t\tspostato il processo in ready\n");
             //metto il PCB in coda alla lista ready
             List_pushBack(&os->ready, (ListItem*) pcb);
             break;
           case IO:  //il prossimo evento è un altro I/O burst
-            printf("\t\trimettiamo il processo in waiting\n");
+            printf("\t\trimesso il processo in waiting\n");
             //rimetto il PCB nella lista waiting, in coda
             List_pushBack(&os->waiting, (ListItem*) pcb);
             break;
@@ -164,9 +167,9 @@ void FakeOS_simStep(FakeOS* os){
   aux=os->running.first;
   if (!aux){  //nessun processo in running
     printf("\tnessun processo in esecuzione\n");
+    goto S;
   }
   //ciclo sui FakePCB della lista running
-  int x=0;  //variabile ausiliaria, conta il numero di PCB che tolgo da running
   while(aux){
     FakePCB* pcb=(FakePCB*)aux;
     aux=aux->next;
@@ -186,11 +189,10 @@ void FakeOS_simStep(FakeOS* os){
       free(e);  //libera la memoria allocata all'evento
       //toglie il FakePCB dalla lista running
       List_detach(&os->running, (ListItem*)pcb);
-      x+=1;
 
       if (! pcb->events.first) {  //gli eventi sono finiti
         //il processo è terminato
-        printf("\t\tprocesso terminato\n");
+        printf("\t\tPROCESSO %d TERMINATO\n", pcb->pid);
         free(pcb); //libera il PCB
       }
       else {
@@ -198,12 +200,12 @@ void FakeOS_simStep(FakeOS* os){
         e=(ProcessEvent*) pcb->events.first;
         switch (e->type){
           case CPU:  //il prossimo evento è un CPU burst
-            printf("\t\tspostiamo il processo in ready\n");
+            printf("\t\tspostato il processo in ready\n");
             //mette il FakePCB in coda alla lista ready
             List_pushBack(&os->ready, (ListItem*) pcb);
             break;
           case IO:  //il prossimo evento è un I/O burst
-            printf("\t\tspostiamo il processo in waiting\n");
+            printf("\t\tspostato il processo in waiting\n");
             //mette il FakePCB in coda alla lista waiting
             List_pushBack(&os->waiting, (ListItem*) pcb);
             break;
@@ -212,17 +214,21 @@ void FakeOS_simStep(FakeOS* os){
     }
   }
 
+S:
+  printf("\n\tDimensione lista running: %d\n", os->running.size);
+  printf("\tDimensione lista waiting: %d\n", os->waiting.size);
+  printf("\tDimensione lista ready: %d\n\n", os->ready.size);
 
   //scheduling_____________________________________________________________________
 
-  if (os->schedule_fn && x>0){
+  if (os->schedule_fn){
     //invoca la funzione di scheduling
     (*os->schedule_fn)(os, os->schedule_args);
   }
 
 
   ++os->timer;  //incrementa il timer
-
+  printf("\n");
 }
 
 
