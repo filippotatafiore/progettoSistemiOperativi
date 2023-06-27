@@ -59,6 +59,7 @@ void FakeOS_createProcess(FakeOS* os, FakeProcess* p) {
   new_pcb->events=p->events;  //la lista degli event di new_pcb è la stessa di p
   new_pcb->durata_burst=0;
   new_pcb->prediction_burst=0;
+  new_pcb->calc_pred=0;
 
   //controlla che la lista degli eventi non sia vuota
   assert(new_pcb->events.first && "process without events");

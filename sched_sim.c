@@ -38,10 +38,15 @@ void schedule(FakeOS* os, void* args_){
     FakePCB* pcb=(FakePCB*)aux;
     aux=aux->next;
 
-    //calcola la prediction e la salva in prediction_burst
-    int p=(args->decay_coeff)*(pcb->durata_burst)+(1-(args->decay_coeff))*(pcb->prediction_burst);
-    pcb->prediction_burst=p;
-
+    /*usiamo la variabile ausiliaria calc_pred per controllare se è già stata calcolata la
+    prediction per il processo*/
+    if (pcb->calc_pred==0){
+      //calcola la prediction e la salva in prediction_burst
+      int p=(args->decay_coeff)*(pcb->durata_burst)+(1-(args->decay_coeff))*(pcb->prediction_burst);
+      pcb->prediction_burst=p;
+      pcb->calc_pred=1;
+    }
+    
     /*  m: valore più grande in min
         c: indice di m
         j: indice del valore -1 trovato in min (se presente)
@@ -80,6 +85,7 @@ void schedule(FakeOS* os, void* args_){
       if (pcb->prediction_burst==min[i]){
         //rimuovo pcb da ready e lo inserisco in running
         List_pushBack(&os->running, List_detach(&os->ready, (ListItem*) pcb));
+        pcb->calc_pred=0;
         printf("\tRimosso il processo con pid %d da ready e inserito in running\n", pcb->pid);
 
         assert(pcb->events.first);  //controlla che la lista degli eventi non sia vuota
@@ -116,7 +122,7 @@ int main(int argc, char** argv) {
   SchedArgs s_args;  //definisce la struct SchedArgs
   //inizializza i campi di s_args
   s_args.quantum=5;  //setta il quantum
-  s_args.decay_coeff=1;  //setta il decay coefficient
+  s_args.decay_coeff=0.7;  //setta il decay coefficient
   s_args.num_cpus=2;  //setta il numero di cpu
 
   os.schedule_args=&s_args;

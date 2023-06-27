@@ -9,6 +9,7 @@ typedef struct {  //PCB
   ListHead events;  //lista di eventi (CPU burst e I/O burst) del processo
   int durata_burst;  //durata del cpu burst eseguito
   int prediction_burst;  //predizione del cpu burst
+  int calc_pred;  //variabile ausiliaria
 } FakePCB;
 
 
