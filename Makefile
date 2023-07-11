@@ -17,11 +17,11 @@ all:	$(BINS)
 %.o:	%.c $(HEADERS)
 	$(CC) $(CCOPTS) -c -o $@  $<
 
-#crea il file eseguibile a partire dal file sched_sim.c e dai file .o creati
+#crea il file eseguibile sched_sim
 sched_sim:	sched_sim.c $(OBJS)
 	$(CC) $(CCOPTS) -o $@ $^
 
-#elimina file .o ed eseguibile
+#elimina i file .o e l'eseguibile
 clean:
 	rm -rf *.o *~ $(OBJS) $(BINS)
 

@@ -29,7 +29,7 @@ void schedule(FakeOS* os, void* args_){
 
   /*calcoliamo per ogni processo in ready la prediction, la salviamo nel campo apposito,
   e salviamo in min i valori delle prediction più piccole*/
-  int min[diff];
+  float min[diff];
   for (int i=0; i<diff; i++){
     min[i]=-1;  //vuoto
   }
@@ -42,16 +42,16 @@ void schedule(FakeOS* os, void* args_){
     prediction per il processo*/
     if (pcb->calc_pred==0){
       //calcola la prediction e la salva in prediction_burst
-      int p=(args->decay_coeff)*(pcb->durata_burst)+(1-(args->decay_coeff))*(pcb->prediction_burst);
+      float p=(args->decay_coeff)*(pcb->durata_burst)+(1-(args->decay_coeff))*(pcb->prediction_burst);
       pcb->prediction_burst=p;
       pcb->calc_pred=1;
     }
     
     /*  m: valore più grande in min
         c: indice di m
-        j: indice del valore -1 trovato in min (se presente)
+        j: indice del primo valore -1 trovato in min (se presente)
     */
-    int m=-2;
+    float m=-2;
     int c=-1;
     int j=-1;
     for (int i=0; i<diff; i++){
@@ -120,10 +120,12 @@ void schedule(FakeOS* os, void* args_){
 int main(int argc, char** argv) {
   FakeOS_init(&os);  //inizializza i campi di os
   SchedArgs s_args;  //definisce la struct SchedArgs
+
   //inizializza i campi di s_args
   s_args.quantum=5;  //setta il quantum
   s_args.decay_coeff=0.7;  //setta il decay coefficient
   s_args.num_cpus=2;  //setta il numero di cpu
+  assert(s_args.decay_coeff >= 0 && s_args.decay_coeff <= 1);
 
   os.schedule_args=&s_args;
   os.schedule_fn=schedule;
@@ -149,7 +151,6 @@ int main(int argc, char** argv) {
   printf("quantum: %d\n", s_args.quantum);
   printf("numero cpu: %d\n", s_args.num_cpus);
   printf("decay coefficient: %f\n\n", s_args.decay_coeff);
-  assert(s_args.decay_coeff >= 0 && s_args.decay_coeff <= 1);
 
   //viene chiamata la funzione FakeOS_simStep ("giro di giostra") finché c'è un processo in running, o c'è un
   //processo in una delle liste
@@ -157,6 +158,6 @@ int main(int argc, char** argv) {
     FakeOS_simStep(&os);
   }
 
-  FakeOS_destroy(&os);
+  printf("********************************************\n\n");
 }
 

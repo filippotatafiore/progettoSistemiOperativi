@@ -233,12 +233,3 @@ S:
 }
 
 
-
-
-
-void FakeOS_destroy(FakeOS* os) {
-
-  //...
-
-}
-

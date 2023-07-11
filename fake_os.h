@@ -8,7 +8,7 @@ typedef struct {  //PCB
   int pid;  //pid del processo associato
   ListHead events;  //lista di eventi (CPU burst e I/O burst) del processo
   int durata_burst;  //durata del cpu burst eseguito
-  int prediction_burst;  //predizione del cpu burst
+  float prediction_burst;  //predizione del cpu burst
   int calc_pred;  //variabile ausiliaria
 } FakePCB;
 
@@ -34,6 +34,4 @@ void FakeOS_init(FakeOS* os);
 //fa "girare la giostra"
 void FakeOS_simStep(FakeOS* os);
 
-//libera memoria del sistema
-void FakeOS_destroy(FakeOS* os);
 
