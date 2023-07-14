@@ -177,6 +177,7 @@ void FakeOS_simStep(FakeOS* os){
 
     //stampa il pid del processo corrente
     printf("\trunning: processo con pid  %d\n", pcb->pid);
+    pcb->durata_burst++;
 
     ProcessEvent* e=(ProcessEvent*) pcb->events.first;  //evento del processo corrente
     assert(e->type==CPU);  //controlla che sia un cpu burst

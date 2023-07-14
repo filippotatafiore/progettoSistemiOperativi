@@ -86,12 +86,12 @@ void schedule(FakeOS* os, void* args_){
         //rimuovo pcb da ready e lo inserisco in running
         List_pushBack(&os->running, List_detach(&os->ready, (ListItem*) pcb));
         pcb->calc_pred=0;
+        pcb->durata_burst=0;
         printf("\tRimosso il processo con pid %d da ready e inserito in running\n", pcb->pid);
 
         assert(pcb->events.first);  //controlla che la lista degli eventi non sia vuota
         ProcessEvent* e = (ProcessEvent*)pcb->events.first;  //primo evento del nuovo PCB
         assert(e->type==CPU);  //controlla che sia di tipo CPU
-        pcb->durata_burst=e->duration;
 
         if (e->duration > args->quantum) {  //se la durata del CPU burst è maggiore del quantum
           //creo un nuovo evento qe CPU burst
@@ -102,7 +102,6 @@ void schedule(FakeOS* os, void* args_){
           e->duration-=args->quantum;  //sottraggo alla durata di e la durata di quantum
           //metto in testa alla lista degli eventi del nuovo PCB corrente l'evento qe
           List_pushFront(&pcb->events, (ListItem*)qe);
-          pcb->durata_burst=qe->duration;
         }
 
         break;
@@ -120,19 +119,29 @@ void schedule(FakeOS* os, void* args_){
 int main(int argc, char** argv) {
   FakeOS_init(&os);  //inizializza i campi di os
   SchedArgs s_args;  //definisce la struct SchedArgs
+  
+  int c, q;
+  float d;
+  int z=0;
+  z+=sscanf(argv[1], "%d", &c);  //legge il numero delle cpu
+  z+=sscanf(argv[2], "%d", &q);  //legge il quantum
+  z+=sscanf(argv[3], "%f", &d);  //legge il decay coefficient
 
+  if (argc<=3 || z<3){
+    printf("Parametri da passare al terminale (in ordine):\n\tnumero delle cpu\tquantum\t\tdecay coefficient\tfile .txt\n");
+    return 0;
+  }
+  
   //inizializza i campi di s_args
-  s_args.quantum=5;  //setta il quantum
-  s_args.decay_coeff=0.7;  //setta il decay coefficient
-  s_args.num_cpus=2;  //setta il numero di cpu
+  s_args.num_cpus=c;  //setta il numero di cpu
+  s_args.quantum=q;  //setta il quantum
+  s_args.decay_coeff=d;  //setta il decay coefficient
   assert(s_args.decay_coeff >= 0 && s_args.decay_coeff <= 1);
 
   os.schedule_args=&s_args;
   os.schedule_fn=schedule;
-
-
-  //si passano come argomenti al main, in argv, i file contenenti le informazioni dei processi
-  for (int i=1; i<argc; ++i){
+  
+  for (int i=4; i<argc; i++){  //file passati
     FakeProcess new_process;
     //carica le informazioni del file argv[i] in new_process
     int num_events=FakeProcess_load(&new_process, argv[i]);
